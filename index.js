@@ -8,7 +8,7 @@ class SimpleDBStore {
   }) {
     // TODO: should secure be set or not?
     this._sdb = aws.createSimpleDBClient(accessKey, secret, { secure: false })
-    this._domain = domain
+    this._domain = domain || 'ILP'
   }
 
   // TODO: how to handle any failures?
@@ -23,28 +23,32 @@ class SimpleDBStore {
     })
   }
 
-  get (key) {
+  async get (key) {
     const res = await this._call('GetAttributes', {
       ItemName: key,
       DomainName: this._domain
     })
 
-    return res.GetAttributesResult.Attribute[0].Value
+    console.log('got:',res)
+    return res.GetAttributesResult.Attribute.Value
   }
 
-  set (key, value) {
+  async put (key, value) {
     return this._call('PutAttributes', {
       ItemName: key,
-      Domain: this._domain,
+      DomainName: this._domain,
       'Attribute.1.Name': 'value',
-      'Attribute.1.Value': value
+      'Attribute.1.Value': value,
+      'Attribute.1.Replace': true
     })
   }
 
-  del (key) {
+  async del (key) {
     return this._call('DeleteAttributes', {
       ItemName: key,
       Domain: this._domain
     })
   }
 }
+
+module.exports = SimpleDBStore
