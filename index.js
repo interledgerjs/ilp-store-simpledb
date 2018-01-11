@@ -28,9 +28,9 @@ class SimpleDBStore {
     }
 
     if (this._role) {
-      const credentials = (await request
-        .get(CREDENTIALS_ENDPOINT + this._role))
-        .body
+      const response = await request
+        .get(CREDENTIALS_ENDPOINT + this._role)
+      const credentials = JSON.parse(response.text)
 
       this._accessKey = credentials.AccessKeyId
       this._secret = credentials.SecretAccessKey
