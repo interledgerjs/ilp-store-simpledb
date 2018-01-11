@@ -4,10 +4,11 @@ class SimpleDBStore {
   constructor ({
     accessKey,
     secret,
-    domain
+    domain,
+    token
   }) {
     // TODO: should secure be set or not?
-    this._sdb = aws.createSimpleDBClient(accessKey, secret, { secure: false })
+    this._sdb = aws.createSimpleDBClient(accessKey, secret, { secure: false, token })
     this._domain = domain || 'ILP'
   }
 
