@@ -9,7 +9,7 @@ class SimpleDBStore {
     secret,
     domain,
     token,
-    instanceProfile
+    role
   }) {
     this._domain = domain || 'ILP'
 
@@ -17,7 +17,7 @@ class SimpleDBStore {
     this._secret = secret
     this._token = token
 
-    this._role = instanceProfile
+    this._role = role
     this._expiry = null
   }
 
