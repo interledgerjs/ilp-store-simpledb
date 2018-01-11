@@ -1,19 +1,52 @@
 const aws = require('aws-lib')
+const request = require('superagent')
+const debug = require('debug')('simpledb-store')
+const CREDENTIALS_ENDPOINT = 'http://169.254.169.254/latest/meta-data/iam/security-credentials/'
 
 class SimpleDBStore {
   constructor ({
     accessKey,
     secret,
     domain,
-    token
+    token,
+    instanceProfile
   }) {
-    // TODO: should secure be set or not?
-    this._sdb = aws.createSimpleDBClient(accessKey, secret, { secure: false, token })
     this._domain = domain || 'ILP'
+
+    this._accessKey = accessKey
+    this._secret = secret
+    this._token = token
+
+    this._role = instanceProfile
+    this._expiry = null
+  }
+
+  async _loadCredentials () {
+    if (this._sdb && (!this._expiry || this._expiry > Date.now())) {
+      return
+    }
+
+    if (this._role) {
+      const credentials = (await request
+        .get(CREDENTIALS_ENDPOINT + this._role))
+        .body
+
+      this._accessKey = credentials.AccessKeyId
+      this._secret = credentials.SecretAccessKey
+      this._token = credentials.Token
+      this._expiry = Date.parse(credentials.Expiration)
+    }
+
+    // TODO: should secure be set or not?
+    this._sdb = aws.createSimpleDBClient(this._accessKey, this._secret, {
+      token: this._token,
+      secure: false,
+    })
   }
 
   // TODO: how to handle any failures?
   async _call (action, params) {
+    await this._loadCredentials()
     return new Promise((resolve, reject) => {
       this._sdb.call(action, params, (err, res) => {
         if (err) {
@@ -30,8 +63,9 @@ class SimpleDBStore {
       DomainName: this._domain
     })
 
-    console.log('got:',res)
-    return res.GetAttributesResult.Attribute.Value
+    debug('response:',res)
+    const attribute = res.GetAttributesResult.Attribute
+    return attribute && attribute.Value
   }
 
   async put (key, value) {
