@@ -2,6 +2,7 @@ const aws = require('aws-lib')
 const request = require('superagent')
 const debug = require('debug')('simpledb-store')
 const CREDENTIALS_ENDPOINT = 'http://169.254.169.254/latest/meta-data/iam/security-credentials/'
+const EXPIRY_BUFFER = 1000 * 60 * 60
 
 class SimpleDBStore {
   constructor ({
@@ -22,7 +23,7 @@ class SimpleDBStore {
   }
 
   async _loadCredentials () {
-    if (this._sdb && (!this._expiry || this._expiry > Date.now())) {
+    if (this._sdb && (!this._expiry || this._expiry < (Date.now() - EXPIRY_BUFFER))) {
       return
     }
 
