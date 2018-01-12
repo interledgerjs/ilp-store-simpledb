@@ -10,9 +10,11 @@ class SimpleDBStore {
     secret,
     domain,
     token,
+    host,
     role
   }) {
     this._domain = domain || 'ILP'
+    this._host = host
 
     this._accessKey = accessKey
     this._secret = secret
@@ -41,6 +43,7 @@ class SimpleDBStore {
     // TODO: should secure be set or not?
     this._sdb = aws.createSimpleDBClient(this._accessKey, this._secret, {
       token: this._token,
+      host: this._host,
       secure: false,
     })
   }
