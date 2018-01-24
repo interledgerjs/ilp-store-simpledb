@@ -4,6 +4,9 @@ const debug = require('debug')('simpledb-store')
 const CREDENTIALS_ENDPOINT = 'http://169.254.169.254/latest/meta-data/iam/security-credentials/'
 const EXPIRY_BUFFER = 1000 * 60 * 60
 
+const START_DELAY = 250
+const MAX_DELAY = 5000
+
 class SimpleDBStore {
   constructor ({
     accessKey,
@@ -48,8 +51,7 @@ class SimpleDBStore {
     })
   }
 
-  // TODO: how to handle any failures?
-  async _call (action, params) {
+  async _call (action, params, delay = START_DELAY) {
     await this._loadCredentials()
     return new Promise((resolve, reject) => {
       this._sdb.call(action, params, (err, res) => {
@@ -58,6 +60,10 @@ class SimpleDBStore {
         }
         resolve(res)
       })
+    }).catch(async e => {
+      if (delay > MAX_DELAY) throw e
+      await new Promise(resolve => setTimeout(resolve, delay))
+      return this._call(action, params, delay * 2)
     })
   }
 
