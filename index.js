@@ -91,7 +91,7 @@ class SimpleDBStore {
   async del (key) {
     return this._call('DeleteAttributes', {
       ItemName: key,
-      Domain: this._domain
+      DomainName: this._domain
     })
   }
 }
