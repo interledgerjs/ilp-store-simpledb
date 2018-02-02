@@ -28,7 +28,7 @@ class SimpleDBStore {
   }
 
   async _loadCredentials () {
-    if (this._sdb && (!this._expiry || this._expiry < (Date.now() - EXPIRY_BUFFER))) {
+    if (this._sdb && (!this._expiry || Date.now() < (this._expiry - EXPIRY_BUFFER))) {
       return
     }
 
