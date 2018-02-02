@@ -27,8 +27,8 @@ class SimpleDBStore {
     this._expiry = null
   }
 
-  async _loadCredentials () {
-    if (this._sdb && (!this._expiry || Date.now() < (this._expiry - EXPIRY_BUFFER))) {
+  async _loadCredentials (force = false) {
+    if (!force && this._sdb && (!this._expiry || Date.now() < (this._expiry - EXPIRY_BUFFER))) {
       return
     }
 
@@ -61,6 +61,11 @@ class SimpleDBStore {
         resolve(res)
       })
     }).catch(async e => {
+      // if the token gets out of date somehow, then force a reload of it
+      if (e.message === 'The security token included in the request is expired') {
+        await this._loadCredentials(true)
+      }
+
       if (delay > MAX_DELAY) throw e
       await new Promise(resolve => setTimeout(resolve, delay))
       return this._call(action, params, delay * 2)
