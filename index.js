@@ -80,7 +80,8 @@ class SimpleDBStore {
 
     debug('response:',res)
     const attribute = res.GetAttributesResult.Attribute
-    return attribute && attribute.Value
+    const value = attribute && attribute.Value
+    return typeof value === 'string' ? value : undefined
   }
 
   async put (key, value) {
